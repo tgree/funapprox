@@ -49,7 +49,7 @@ $(DEP_FILE): make.conf
 # Rules for objective files
 $(ALL_OFILE): $(OBJ_DIR)/%.o : %.c
 	@echo Compiling $<
-	@$(CC) $(SW) $(CCFLAGS) $(MAINOPT) -c $< -o $@ 
+	@$(CC) $(SW) $(CCFLAGS) $(MAINOPT) -c $< -o $@  -fPIC
 
 #==============================================================================
 # Rules for dependencies files
@@ -96,10 +96,10 @@ endif
 $(LIB_DIR)/$(BASE_NAME).so: $(OBJ_FILE) include/$(BASE_NAME).h
 	@echo Linking $@
 	@rm -f $@
-	@$(CC) $(SW) -o $@ $(SHARED_FLAG) $(OBJ_FILE) $(CCFLAGS) 
+	$(CC) $(SW) -o $@ $(SHARED_FLAG) $(OBJ_FILE) $(CCFLAGS) -lm -lgmp
 
 $(LIB_DIR)/$(BASE_NAME).a: $(OBJ_FILE) include/$(BASE_NAME).h
-	@echo Linking $@
+	@echo Archiving $@
 	@rm -f $@
 	@$(AR) cq $@ $(OBJ_FILE)
 	@if ( test -f $(RANLIB) -o -f /usr/bin/ranlib -o \
@@ -120,16 +120,16 @@ indent:
 	-@for j in $(INCLUDE_DIR); do for i in $$j/*.h; do indent $$i -o _ind_ $(IDENTFLAGS) && mv _ind_ $$i && echo "Indenting $$i"; done; done
 
 $(MAIN_PROG): % : %.o $(BASE_NAME).a 
-	@echo Linking $@
-	@$(CC) $(SW) $(INCLUDEDIR) $(MAINOPT) $< $(CCFLAGS) $(LD_ALL_OPTION) $(LIB_FLAGS) $(filter %.a,$^) $(LD_NOALL_OPTION) -o $@ 
+	@echo ******************************** Linking 1 $@
+	$(CC) $(SW) $(INCLUDEDIR) $(MAINOPT) $< $(CCFLAGS) $(LD_ALL_OPTION) $(LIB_FLAGS) $(filter %.a,$^) $(LD_NOALL_OPTION) -o $@ -lm -lgmp -fPIC
 
 $(MAIN_PROG_ST): %_st : %.o $(BASE_NAME).a 
-	@echo Linking $@
-	@$(CC) -static -static-libgcc $(SW) $(INCLUDEDIR) $(MAINOPT) $< $(LD_ALL_OPTION) $(filter %.a,$^) $(filter %.so,$^)  $(LD_NOALL_OPTION) $(LIB_FLAGS) $(CCFLAGS) -o $@ 
+	@echo ******************************** Linking 2 $@
+	$(CC) -static -static-libgcc $(SW) $(INCLUDEDIR) $(MAINOPT) $< $(LD_ALL_OPTION) $(filter %.a,$^) $(filter %.so,$^)  $(LD_NOALL_OPTION) $(LIB_FLAGS) $(CCFLAGS) -o $@ 
 
 $(MAIN_PROG_DYN): %_dyn : %.o $(BASE_NAME).so tags
-	@echo Linking $@ 
-	@$(CC) $(SW) $(INCLUDEDIR) $(MAINOPT) $(filter %.o,$^) $(filter %.so,$^) $(CCFLAGS) $(LIB_FLAGS) -o $@ 
+	@echo ******************************** Linking 3 $@ 
+	$(CC) $(SW) $(INCLUDEDIR) $(MAINOPT) $(filter %.o,$^) $(filter %.so,$^) $(CCFLAGS) $(LIB_FLAGS) -o $@ 
 
 ifneq ($(OS), $(CYGWIN))
 VERSION := $(shell svnversion .)

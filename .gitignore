@@ -1,0 +1,9 @@
+*.o
+*.a
+*.so
+*.swp
+QSex090408/dbl_solver
+QSex090408/esolver
+QSex090408/mpf_solver
+QSex090408/mpq_solver
+fa

@@ -68,6 +68,7 @@ struct lp_t {
       throw ":(";
     }
     if (stat != QS_LP_OPTIMAL) {
+      //printf("not optimal %d\n",stat);
       throw ":(";
     }
     mpq_t foo;
@@ -301,9 +302,9 @@ float half_ulp(float x) {
 //
 // Hack this function, and `main()` below, if you'd like to do something
 // other than approximate `tan(x)` on `(10^{-4}, pi/4)` within `0.999` ulp.
-static double ulps_wrong = 0.999;
+static double ulps_wrong = .999;
 void get_bounds(float x, float &lower, float &upper) {
-  double d = tan((double)x);
+  double d = sin((double)x);
   float ulp = 2 * half_ulp((float)d);
   double lo = d - ulps_wrong * ulp, up = d + ulps_wrong * ulp;
   lower = lo; upper = up;
@@ -489,6 +490,7 @@ vector<float> dive(int nvar, const float *clb, const float *cub,
       } catch (const char *) {}
     }
   }
+  printf("sadface\n");
   throw ":(";
 }
 
@@ -559,34 +561,33 @@ int findit(expression *e, int nvar, float xlb, float xub,
   }
 }
 
+#define NVARS   3
+
 int main() {
   program_start = get_cpu_usecs();
   auto fma = expression::fma;
+
   expression *x = expression::var(-1);
-  expression *c3 = expression::var(6);
-  expression *c5 = expression::var(5);
-  expression *c7 = expression::var(4);
-  expression *c9 = expression::var(3);
-  expression *c11 = expression::var(2);
-  expression *c13 = expression::var(1);
-  expression *c15 = expression::var(0);
+  expression *xv = fma(x, expression::con(1), expression::con(0));
+  expression *s = fma(xv, xv, expression::con(0));
 
-  expression *s = fma(x, x, expression::con(0));
-  expression *tan_poly = fma(s, c15, c13);
-  tan_poly = fma(s, tan_poly, c11);
-  tan_poly = fma(s, tan_poly, c9);
-  tan_poly = fma(s, tan_poly, c7);
-  tan_poly = fma(s, tan_poly, c5);
-  tan_poly = fma(s, tan_poly, c3);
+  expression *tan_poly = fma(s, expression::var(0), expression::var(1));
+  for (size_t i=2; i<NVARS; ++i)
+      tan_poly = fma(s, tan_poly, expression::var(i));
   tan_poly = fma(s, tan_poly, expression::con(0));
-  tan_poly = fma(x, tan_poly, x);
+  tan_poly = fma(xv, tan_poly, xv);
 
-  float clb[8] = {-1,-1,-1,-1,-1,-1,-1,-1};
-  float cub[8] = {1,1,1,1,1,1,1,1};
+  float clb[NVARS + 1];
+  float cub[NVARS + 1];
+  for (size_t i=0; i<NVARS; ++i)
+  {
+      clb[i] = -1;
+      cub[i] = 1;
+  }
 
-  vector<float> testpoints = {0x1p-1};
+  vector<float> testpoints = {0.00005};
 
-  int k = findit(tan_poly, 7, 1e-4, M_PI/4, clb, cub, testpoints);
+  int k = findit(tan_poly, NVARS, -M_PI/4, M_PI/4, clb, cub, testpoints);
 
   printf("%i\n", k);
 }
