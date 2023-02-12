@@ -304,7 +304,7 @@ float half_ulp(float x) {
 // other than approximate `tan(x)` on `(10^{-4}, pi/4)` within `0.999` ulp.
 static double ulps_wrong = 0;
 void get_bounds(float x, float &lower, float &upper) {
-  double d = sin((double)x);
+  double d = cos((double)x);
   float ulp = 2 * half_ulp((float)d);
   double lo = d - ulps_wrong * ulp, up = d + ulps_wrong * ulp;
   lower = lo; upper = up;
@@ -561,16 +561,16 @@ int findit(expression *e, int nvar, float xlb, float xub,
   }
 }
 
-#define NVARS   4
+#define NVARS   3
 
 
 int
 test(double ulps_wrong_val, expression* poly)
 {
-#if 0
-  float clb[NVARS + 1];
-  float cub[NVARS + 1];
-  for (size_t i=0; i<=NVARS; ++i)
+#if 1
+  float clb[NVARS];
+  float cub[NVARS];
+  for (size_t i=0; i<NVARS; ++i)
   {
       clb[i] = -1;
       cub[i] = 1;
@@ -596,19 +596,26 @@ int main() {
   expression *s = fma(xv, xv, expression::con(0));
 
 #if 1
-  // Taylor polynomial for sin(x) about x = 0:
-  // x + cN_1*x**3 + c_N_2*x**5 + ... + c1*x**(2N - 1) + c0*x**(2N + 1)
+  // Taylor series for sin(x) about x = 0:
+  // x + cN_1*x**3 + cN_2*x**5 + ... + c1*x**(2N - 1) + c0*x**(2N + 1)
+  // = x*s*(s*(s*...(s*c0 + c1) + ...) + cN_2) + cN_1) + x
   expression *poly = fma(s, expression::var(0), expression::var(1));
   for (size_t i=2; i<NVARS; ++i)
       poly = fma(s, poly, expression::var(i));
   poly = fma(s, poly, expression::con(0));
   poly = fma(xv, poly, xv);
 #else
-  // 1 + 
+  // Taylor series for cos(x) about x = 0:
+  // 1 + cN_1*x**2 + cN_2*x**4 + ... + c1*x**(2N - 2) + c0*x**2N
+  // = s*(s*(s*...(s*c0 + c1) + ...) + cN_2) + cN_1) + 1
+  expression *poly = fma(s, expression::var(0), expression::var(1));
+  for (size_t i=2; i<NVARS; ++i)
+      poly = fma(s, poly, expression::var(i));
+  poly = fma(s, poly, expression::con(1));
 #endif
 
   double ulps_fail_low  = 0;
-  double ulps_pass_high = 0.999;
+  double ulps_pass_high = 1.999;
 
   // Test if the low limit works.
   int k = test(ulps_fail_low,poly);
