@@ -16,6 +16,8 @@ Espinoza.](http://www.math.uwaterloo.ca/~bico/qsopt/ex/).  This program also
 depends on a complete and working installation of [GMP](https://gmplib.org/).
 Download and build `QSopt_ex` first in directory `QSex090408`, then run `make`.
 
+Install gmp using 'apt-get install libgmp-dev'.
+
 Using
 -----
 
