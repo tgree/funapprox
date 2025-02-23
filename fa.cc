@@ -304,7 +304,7 @@ float half_ulp(float x) {
 // other than approximate `tan(x)` on `(10^{-4}, pi/4)` within `0.999` ulp.
 static double ulps_wrong = 0;
 void get_bounds(float x, float &lower, float &upper) {
-  double d = sin((double)x);
+  double d = cos((double)x);
   float ulp = 2 * half_ulp((float)d);
   double lo = d - ulps_wrong * ulp, up = d + ulps_wrong * ulp;
   lower = lo; upper = up;
@@ -561,7 +561,7 @@ int findit(expression *e, int nvar, float xlb, float xub,
   }
 }
 
-#define NVARS   3
+#define NVARS   4
 
 
 int
@@ -595,7 +595,7 @@ int main() {
   expression *xv = fma(x, expression::con(1), expression::con(0));
   expression *s = fma(xv, xv, expression::con(0));
 
-#if 1
+#if 0
   // Taylor series for sin(x) about x = 0:
   // x + cN_1*x**3 + cN_2*x**5 + ... + c1*x**(2N - 1) + c0*x**(2N + 1)
   // = x*s*(s*(s*...(s*c0 + c1) + ...) + cN_2) + cN_1) + x
