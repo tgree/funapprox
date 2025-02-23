@@ -304,7 +304,7 @@ float half_ulp(float x) {
 // other than approximate `tan(x)` on `(10^{-4}, pi/4)` within `0.999` ulp.
 static double ulps_wrong = 0;
 void get_bounds(float x, float &lower, float &upper) {
-  double d = cos((double)x);
+  double d = sin((double)x);
   float ulp = 2 * half_ulp((float)d);
   double lo = d - ulps_wrong * ulp, up = d + ulps_wrong * ulp;
   lower = lo; upper = up;
@@ -615,7 +615,7 @@ int main() {
 #endif
 
   double ulps_fail_low  = 0;
-  double ulps_pass_high = 1.999;
+  double ulps_pass_high = 0.999;
 
   // Test if the low limit works.
   int k = test(ulps_fail_low,poly);
